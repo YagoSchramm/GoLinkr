@@ -10,9 +10,9 @@ import (
 	usecaseimpl "github.com/YagoSchramm/Golinkr/domain/usecase/impl"
 	"github.com/YagoSchramm/Golinkr/infrastructure/datastore/repository"
 	repoimpl "github.com/YagoSchramm/Golinkr/infrastructure/datastore/repository/impl"
-	"github.com/YagoSchramm/Golinkr/infrastructure/datastore/repository/util"
 	approuter "github.com/YagoSchramm/Golinkr/infrastructure/router"
 	"github.com/YagoSchramm/Golinkr/infrastructure/router/modules"
+	"github.com/YagoSchramm/Golinkr/infrastructure/service/db"
 	"github.com/gorilla/mux"
 )
 
@@ -34,21 +34,22 @@ func buildApp() (*mux.Router, func(), error) {
 		return nil, func() {}, errors.New("DATABASE_URL is not set")
 	}
 
-	db, err := util.NewPostgresConnection(dsn)
+	dbConn, err := db.NewPostgresConnection(dsn)
 	if err != nil {
 		return nil, func() {}, err
 	}
 
-	linkRepository := repository.LinkRepository(repoimpl.NewLinkRepository(db))
+	linkRepository := repository.LinkRepository(repoimpl.NewLinkRepository(dbConn))
 	cleanup := func() {
-		_ = db.Close()
+		_ = dbConn.Close()
 	}
 
 	linkUsecase := usecaseimpl.NewLinkUsecase(linkRepository)
 	linkModule := modules.NewLinkModule(linkUsecase)
+	healthModule := modules.NewHealthModule(dbConn)
 
 	router := mux.NewRouter()
-	approuter.Mount(router, linkModule)
+	approuter.Mount(router, healthModule, linkModule)
 
 	return router, cleanup, nil
 }
