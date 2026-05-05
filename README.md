@@ -16,6 +16,8 @@ GoLinkr is a simple URL shortener built with Go, Gorilla Mux, and PostgreSQL.
 ### Create link
 
 - `POST /link`
+- `GET /health`
+- `GET /health/db`
 
 Request body:
 
@@ -42,6 +44,16 @@ Response example:
 - `GET /link/{code}`
 
 This returns a `302 Found` redirect to the original URL.
+
+### Health
+
+- `GET /health`
+
+Returns a simple liveness response.
+
+- `GET /health/db`
+
+Returns `200 OK` when the API can ping PostgreSQL and `503 Service Unavailable` when it cannot.
 
 ## Project Structure
 
@@ -87,6 +99,8 @@ DATABASE_URL="postgres://golinkr:golinkr@localhost:5433/golinkr?sslmode=disable"
 
 - `POST http://localhost:8080/link`
 - `GET http://localhost:8080/link/{code}`
+- `GET http://localhost:8080/health`
+- `GET http://localhost:8080/health/db`
 
 ## Database
 
@@ -104,7 +118,6 @@ Tables currently included:
 
 - A proper migration runner in the repo.
 - A production Docker image for the API.
-- Health check endpoint.
 - Tests for HTTP routes and use cases.
 - Better error mapping and validation responses.
 - Pagination and richer CRUD for users and analytics.
