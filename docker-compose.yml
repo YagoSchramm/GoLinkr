@@ -1,0 +1,17 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: golinkr-db
+    environment:
+      POSTGRES_DB: golinkr
+      POSTGRES_USER: golinkr
+      POSTGRES_PASSWORD: golinkr
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U golinkr -d golinkr"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ./infrastructure/script/migrate/001-create-tables.up.sql:/docker-entrypoint-initdb.d/001-create-tables.sql:ro
