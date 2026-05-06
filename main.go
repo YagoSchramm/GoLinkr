@@ -30,6 +30,7 @@ func buildApp() (*mux.Router, func(), error) {
 	loadDotEnv()
 
 	dsn := os.Getenv("DATABASE_URL")
+
 	if dsn == "" {
 		return nil, func() {}, errors.New("DATABASE_URL is not set")
 	}
