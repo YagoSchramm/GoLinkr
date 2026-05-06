@@ -41,8 +41,11 @@ func HandleError(w http.ResponseWriter, err error) {
 	var clientErr derr.ClientError
 	if errors.As(err, &clientErr) {
 		status := http.StatusBadRequest
-		if clientErr.Code == derr.NotFoundError.Code {
+		switch clientErr.Code {
+		case derr.NotFoundError.Code:
 			status = http.StatusNotFound
+		case derr.UnauthorizedError.Code:
+			status = http.StatusUnauthorized
 		}
 		w.WriteHeader(status)
 		_ = json.NewEncoder(w).Encode(clientErr)
