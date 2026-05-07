@@ -6,8 +6,11 @@ import (
 
 	"github.com/YagoSchramm/Golinkr/domain/entity"
 	"github.com/YagoSchramm/Golinkr/domain/entity/derr"
+	"github.com/YagoSchramm/Golinkr/domain/rules"
 	"github.com/YagoSchramm/Golinkr/domain/usecase"
 	"github.com/YagoSchramm/Golinkr/infrastructure/datastore/repository"
+	service "github.com/YagoSchramm/Golinkr/infrastructure/service/hash"
+	service2 "github.com/YagoSchramm/Golinkr/infrastructure/service/jwt"
 	"github.com/google/uuid"
 )
 
@@ -19,10 +22,48 @@ func NewAuthUsecase(repository repository.UserRepository) usecase.AuthUseCase {
 
 type authUsecase struct {
 	repository repository.UserRepository
+	secret     string
 }
 
-func (a *authUsecase) Authenticate(ctx context.Context, credentials entity.UserCredentials) (*entity.User, error) {
-	return nil, derr.InvalidCredentials
+func (a *authUsecase) AttemptRegister(ctx context.Context, user entity.User) (string, error) {
+	err := rules.ValidateRegister(user)
+	if err != nil {
+		return "", derr.JoinError("failed to validate the user", err)
+	}
+
+	existedUser, err := a.repository.GetUserByEmail(ctx, user.Email)
+	if err != nil && !errors.Is(err, derr.NotFoundError) {
+		return "", derr.JoinError("failed to get user by email", err)
+	}
+
+	if existedUser != nil {
+		return "", derr.UserAlreadyExists
+	}
+
+	hashedPassword, err := service.HashPassword(user.Password)
+	if err != nil {
+		return "", derr.JoinError("failed to hash the password", err)
+	}
+
+	user.Password = hashedPassword
+
+	id, err := a.repository.AttemptRegister(ctx, user)
+	if err != nil {
+		return "", derr.JoinError("failed to attempt register the user", err)
+	}
+
+	token, err := service2.GenerateToken(id, user.Email, a.secret)
+	if err != nil {
+		return "", derr.JoinError("failed to generate the token", err)
+
+	}
+
+	return token, err
+}
+
+func (a *authUsecase) AttemptLogin(ctx context.Context, credentials entity.UserCredentials) (string, error) {
+	return "", derr.InvalidCredentials
+
 }
 
 func (a *authUsecase) ValidateSession(ctx context.Context, userID uuid.UUID, email string) error {
