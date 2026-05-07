@@ -28,7 +28,7 @@ type authUsecase struct {
 func (a *authUsecase) AttemptRegister(ctx context.Context, user entity.User) (string, error) {
 	err := rules.ValidateRegister(user)
 	if err != nil {
-		return "", derr.JoinError("failed to validate the user", err)
+		return "", err
 	}
 
 	existedUser, err := a.repository.GetUserByEmail(ctx, user.Email)
@@ -62,8 +62,35 @@ func (a *authUsecase) AttemptRegister(ctx context.Context, user entity.User) (st
 }
 
 func (a *authUsecase) AttemptLogin(ctx context.Context, credentials entity.UserCredentials) (string, error) {
-	return "", derr.InvalidCredentials
+	err := rules.ValidateLogin(credentials)
+	if err != nil {
+		return "", err
+	}
 
+	existedUser, err := a.repository.GetUserByEmail(ctx, credentials.Email)
+	if err != nil && !errors.Is(err, derr.NotFoundError) {
+		return "", derr.JoinError("failed to get user by email", err)
+	}
+
+	if existedUser == nil {
+		return "", derr.NotFoundError
+	}
+
+	valid, err := a.repository.AttemptLogin(ctx, credentials)
+	if err != nil {
+		return "", err
+	}
+
+	if !valid {
+		return "", derr.InvalidCredentials
+	}
+
+	token, err := service2.GenerateToken(existedUser.ID, credentials.Email, a.secret)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
 func (a *authUsecase) ValidateSession(ctx context.Context, userID uuid.UUID, email string) error {
