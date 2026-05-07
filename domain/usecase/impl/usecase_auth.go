@@ -52,7 +52,7 @@ func (a *authUsecase) AttemptRegister(ctx context.Context, user entity.User) (st
 		return "", derr.JoinError("failed to attempt register the user", err)
 	}
 
-	token, err := service2.GenerateToken(id, user.Email, a.secret)
+	token, err := service2.GenerateToken(*id, user.Email, a.secret)
 	if err != nil {
 		return "", derr.JoinError("failed to generate the token", err)
 
@@ -76,11 +76,16 @@ func (a *authUsecase) AttemptLogin(ctx context.Context, credentials entity.UserC
 		return "", derr.NotFoundError
 	}
 
-	valid, err := a.repository.AttemptLogin(ctx, credentials)
+	user, err := a.repository.AttemptLogin(ctx, credentials)
 	if err != nil {
 		return "", err
 	}
 
+	if user == nil {
+		return "", derr.NewNotFoundError("user not found")
+	}
+
+	valid := service.CheckPassword(credentials.Password, user.Password)
 	if !valid {
 		return "", derr.InvalidCredentials
 	}

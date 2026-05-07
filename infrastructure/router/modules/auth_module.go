@@ -48,6 +48,12 @@ func (m authModule) Routes() []router.RouteDefinition {
 			Handler:     m.login,
 			HttpMethods: []string{http.MethodPost},
 		},
+		{
+			Path:        "/register",
+			Description: "Attempt to register",
+			Handler:     m.register,
+			HttpMethods: []string{http.MethodPost},
+		},
 	}
 }
 
@@ -107,6 +113,37 @@ func (m authModule) login(w http.ResponseWriter, r *http.Request) {
 	token, err := m.authUseCase.AttemptLogin(ctx, credentials)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to attempt login", err) // needs logger
+		router.HandleError(w, err)
+		return
+	}
+
+	w.Header().Set("Authorization", "Bearer "+token)
+	err = router.Write(w, token)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to write response", err) // needs logger
+	}
+}
+
+func (m authModule) register(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to read request body", err) // needs logger
+		router.HandleError(w, err)
+		return
+	}
+
+	var user entity.User
+	err = json.Unmarshal(body, &user)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to unmarshal request body", err) // needs logger
+		return
+	}
+
+	token, err := m.authUseCase.AttemptRegister(ctx, user)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to attempt register", err) // needs logger
 		router.HandleError(w, err)
 		return
 	}

@@ -9,6 +9,6 @@ import (
 
 type UserRepository interface {
 	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
-	AttemptRegister(ctx context.Context, user entity.User) (uuid.UUID, error)
-	AttemptLogin(ctx context.Context, credentials entity.UserCredentials) (bool, error)
+	AttemptRegister(ctx context.Context, user entity.User) (*uuid.UUID, error)
+	AttemptLogin(ctx context.Context, credentials entity.UserCredentials) (*entity.User, error)
 }
