@@ -2,9 +2,13 @@ package modules
 
 import (
 	"context"
+	"encoding/json"
+	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 
+	"github.com/YagoSchramm/Golinkr/domain/entity"
 	"github.com/YagoSchramm/Golinkr/domain/entity/derr"
 	"github.com/YagoSchramm/Golinkr/domain/usecase"
 	"github.com/YagoSchramm/Golinkr/infrastructure/router"
@@ -37,7 +41,20 @@ func (m authModule) Path() string {
 }
 
 func (m authModule) Routes() []router.RouteDefinition {
-	return []router.RouteDefinition{}
+	return []router.RouteDefinition{
+		{
+			Path:        "/login",
+			Description: "Attempt to login",
+			Handler:     m.login,
+			HttpMethods: []string{http.MethodPost},
+		},
+		{
+			Path:        "/register",
+			Description: "Attempt to register",
+			Handler:     m.register,
+			HttpMethods: []string{http.MethodPost},
+		},
+	}
 }
 
 func (m authModule) Middlewares() []mux.MiddlewareFunc {
@@ -72,5 +89,68 @@ func (m authModule) sessionMiddleware() mux.MiddlewareFunc {
 			ctx := context.WithValue(r.Context(), "user_claims", claims)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
+	}
+}
+
+func (m authModule) login(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to read request body", err) // needs logger
+		router.HandleError(w, err)
+		return
+	}
+
+	var credentials entity.UserCredentials
+	err = json.Unmarshal(body, &credentials)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to unmarshal request body", err) // needs logger
+		router.HandleError(w, err)
+		return
+	}
+
+	token, err := m.authUseCase.AttemptLogin(ctx, credentials)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to attempt login", err) // needs logger
+		router.HandleError(w, err)
+		return
+	}
+
+	w.Header().Set("Authorization", "Bearer "+token)
+	err = router.Write(w, token)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to write response", err) // needs logger
+	}
+}
+
+func (m authModule) register(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to read request body", err) // needs logger
+		router.HandleError(w, err)
+		return
+	}
+
+	var user entity.User
+	err = json.Unmarshal(body, &user)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to unmarshal request body", err) // needs logger
+		return
+	}
+
+	token, err := m.authUseCase.AttemptRegister(ctx, user)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to attempt register", err) // needs logger
+		router.HandleError(w, err)
+		return
+	}
+
+	w.Header().Set("Authorization", "Bearer "+token)
+	err = router.Write(w, token)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to write response", err) // needs logger
 	}
 }

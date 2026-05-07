@@ -8,6 +8,7 @@ import (
 )
 
 type AuthUseCase interface {
-	Authenticate(ctx context.Context, credentials entity.UserCredentials) (*entity.User, error)
+	AttemptRegister(ctx context.Context, user entity.User) (string, error)
+	AttemptLogin(ctx context.Context, credentials entity.UserCredentials) (string, error)
 	ValidateSession(ctx context.Context, userID uuid.UUID, email string) error
 }
