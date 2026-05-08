@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	usecaseimpl "github.com/YagoSchramm/Golinkr/domain/usecase/impl"
-	"github.com/YagoSchramm/Golinkr/infrastructure/datastore/repository"
 	repoimpl "github.com/YagoSchramm/Golinkr/infrastructure/datastore/repository/impl"
 	approuter "github.com/YagoSchramm/Golinkr/infrastructure/router"
 	"github.com/YagoSchramm/Golinkr/infrastructure/router/modules"
@@ -30,6 +29,7 @@ func buildApp() (*mux.Router, func(), error) {
 	loadDotEnv()
 
 	dsn := os.Getenv("DATABASE_URL")
+	secret := os.Getenv("JWT_SECRET")
 
 	if dsn == "" {
 		return nil, func() {}, errors.New("DATABASE_URL is not set")
@@ -40,17 +40,27 @@ func buildApp() (*mux.Router, func(), error) {
 		return nil, func() {}, err
 	}
 
-	linkRepository := repository.LinkRepository(repoimpl.NewLinkRepository(dbConn))
+	userRepository := repoimpl.NewUserRepository(dbConn)
+	linkRepository := repoimpl.NewLinkRepository(dbConn)
 	cleanup := func() {
 		_ = dbConn.Close()
 	}
 
-	linkUsecase := usecaseimpl.NewLinkUsecase(linkRepository)
-	linkModule := modules.NewLinkModule(linkUsecase)
+	authUseCase := usecaseimpl.NewAuthUsecase(userRepository)
+	linkUseCase := usecaseimpl.NewLinkUsecase(linkRepository)
+
+	authModule := modules.NewAuthModule(authUseCase, secret)
+	linkModule := modules.NewLinkModule(linkUseCase)
 	healthModule := modules.NewHealthModule(dbConn)
 
 	router := mux.NewRouter()
-	approuter.Mount(router, healthModule, linkModule)
+	approuter.Mount(
+		router,
+		authModule.Middlewares(),
+		authModule,
+		linkModule,
+		healthModule,
+	)
 
 	return router, cleanup, nil
 }

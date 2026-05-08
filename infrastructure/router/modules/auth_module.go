@@ -58,9 +58,7 @@ func (m authModule) Routes() []router.RouteDefinition {
 }
 
 func (m authModule) Middlewares() []mux.MiddlewareFunc {
-	return []mux.MiddlewareFunc{
-		m.sessionMiddleware(),
-	}
+	return []mux.MiddlewareFunc{m.sessionMiddleware()}
 }
 
 func (m authModule) sessionMiddleware() mux.MiddlewareFunc {
