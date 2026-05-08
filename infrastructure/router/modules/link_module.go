@@ -17,6 +17,7 @@ type linkModule struct {
 	linkUsecase usecase.LinkUsecase
 	name        string
 	path        string
+	middleware  mux.MiddlewareFunc
 }
 
 func NewLinkModule(linkUsecase usecase.LinkUsecase) approuter.Module {
@@ -42,7 +43,7 @@ func (m linkModule) Routes() []approuter.RouteDefinition {
 			Description: "Create link",
 			Handler:     m.create,
 			HttpMethods: []string{http.MethodPost},
-			Public:      true,
+			Public:      false,
 		},
 		{
 			Path:        "/{code}",
@@ -55,7 +56,7 @@ func (m linkModule) Routes() []approuter.RouteDefinition {
 }
 
 func (m linkModule) Middlewares() []mux.MiddlewareFunc {
-	return []mux.MiddlewareFunc{}
+	return []mux.MiddlewareFunc{m.middleware}
 }
 
 func (m linkModule) create(w http.ResponseWriter, r *http.Request) {

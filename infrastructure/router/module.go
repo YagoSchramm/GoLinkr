@@ -19,4 +19,5 @@ type RouteDefinition struct {
 	Handler     http.HandlerFunc
 	HttpMethods []string
 	Public      bool
+	Middlewares []mux.MiddlewareFunc
 }
