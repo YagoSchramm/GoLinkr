@@ -17,9 +17,11 @@ var (
 )
 
 var (
-	InvalidUsername    = NewClientError("INVALID_USERNAME", "Invalid username")
-	BiographyIsTooLong = NewClientError("BIOGRAPHY_IS_TOO_LONG", "Biography is too long")
-	NameIsTooShort     = NewClientError("NAME_IS_TOO_SHORT", "Name is too short")
-	NameIsTooLong      = NewClientError("NAME_IS_TOO_LONG", "Name is too long")
-	WeakPassword       = NewClientError("WEAK_PASSWORD", "Weak password")
+	InvalidUsername = NewClientError("INVALID_USERNAME", "Invalid username")
+	NameIsTooShort  = NewClientError("NAME_IS_TOO_SHORT", "Name is too short")
+	WeakPassword    = NewClientError("WEAK_PASSWORD", "Weak password")
+)
+
+var (
+	InvalidLinkId = NewClientError("INVALID_LINK_ID", "Invalid link id")
 )
