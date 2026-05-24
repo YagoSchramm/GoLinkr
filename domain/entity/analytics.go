@@ -11,6 +11,11 @@ type Analytics struct {
 	LinkID uuid.UUID `json:"link_id,omitempty"`
 	Clicks int64     `json:"clicks"`
 }
+
+type GetAnalyticsDTO struct {
+	LinkID string `json:"link_id,omitempty"`
+}
+
 type LinkAnalyticsResponse struct {
 	LinkID      uuid.UUID `json:"link_id" db:"link_id"`
 	Code        string    `json:"code" db:"code"`
