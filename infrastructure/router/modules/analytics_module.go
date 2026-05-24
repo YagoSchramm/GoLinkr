@@ -37,7 +37,7 @@ func (m analyticsModule) Path() string {
 func (m analyticsModule) Routes() []router.RouteDefinition {
 	return []router.RouteDefinition{
 		{
-			Path:        "",
+			Path:        "/",
 			Description: "Get the analytics from the link",
 			Handler:     m.getAnalyticsByLinkId,
 			HttpMethods: []string{http.MethodGet},

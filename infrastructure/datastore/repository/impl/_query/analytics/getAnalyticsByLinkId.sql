@@ -1,9 +1,5 @@
 SELECT
-    l.id AS link_id,
-    l.code,
-    l.original_url,
-    l.created_at,
-    a.clicks
+    COALESCE(a.clicks, 0) AS clicks
 FROM links l
-         INNER JOIN analytics a ON a.link_id = l.id
+         LEFT JOIN analytics a ON a.link_id = l.id
 WHERE l.id = $1;

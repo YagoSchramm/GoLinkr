@@ -26,18 +26,14 @@ var getAnalyticsByLinkIdQuery string
 //go:embed _query/analytics/updateAnalytics.sql
 var updateAnalyticsQuery string
 
-func (r analyticsRepository) GetAnalyticsByLinkById(ctx context.Context, linkID string) (*entity.LinkAnalyticsResponse, error) {
-	var result entity.LinkAnalyticsResponse
+func (r analyticsRepository) GetAnalyticsByLinkById(ctx context.Context, linkID string) (*entity.Analytics, error) {
+	var result entity.Analytics
 	row := r.db.QueryRowContext(
 		ctx,
-		getLinkByCodeQuery,
+		getAnalyticsByLinkIdQuery,
 		linkID,
 	)
 	if err := row.Scan(
-		&result.LinkID,
-		&result.Code,
-		&result.OriginalURL,
-		&result.CreatedAt,
 		&result.Clicks,
 	); err != nil {
 		if err == sql.ErrNoRows {

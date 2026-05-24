@@ -7,8 +7,8 @@ import (
 )
 
 type Link struct {
-	ID          uuid.UUID
-	Code        string
-	OriginalURL string
-	CreatedAt   time.Time
+	ID          uuid.UUID `json:"id"`
+	Code        string    `json:"code"`
+	OriginalURL string    `json:"original_url"`
+	CreatedAt   time.Time `json:"created_at"`
 }

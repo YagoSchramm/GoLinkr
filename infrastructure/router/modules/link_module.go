@@ -21,13 +21,12 @@ type linkModule struct {
 	middleware       mux.MiddlewareFunc
 }
 
-func NewLinkModule(linkUseCase usecase.LinkUsecase,	analyticsUseCase usecase.AnalyticsUseCase
-) approuter.Module {
+func NewLinkModule(linkUseCase usecase.LinkUsecase, analyticsUseCase usecase.AnalyticsUseCase) approuter.Module {
 	return linkModule{
 		analyticsUseCase: analyticsUseCase,
-		linkUseCase: linkUseCase,
-		name:        "Link",
-		path:        "/link",
+		linkUseCase:      linkUseCase,
+		name:             "Link",
+		path:             "/link",
 	}
 }
 
@@ -94,7 +93,12 @@ func (m linkModule) redirect(w http.ResponseWriter, r *http.Request) {
 		approuter.HandleError(w, err)
 		return
 	}
-	err:=m.analyticsUseCase.
-
+	var updatedAnalytics = entity.Analytics{
+		LinkID: link.ID,
+	}
+	_, err = m.analyticsUseCase.UpdateAnalytics(r.Context(), updatedAnalytics)
+	if err != nil {
+		approuter.HandleError(w, err)
+	}
 	http.Redirect(w, r, link.OriginalURL, http.StatusFound)
 }
