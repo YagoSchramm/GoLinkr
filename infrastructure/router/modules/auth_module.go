@@ -47,12 +47,14 @@ func (m authModule) Routes() []router.RouteDefinition {
 			Description: "Attempt to login",
 			Handler:     m.login,
 			HttpMethods: []string{http.MethodPost},
+			Public:      true,
 		},
 		{
 			Path:        "/register",
 			Description: "Attempt to register",
 			Handler:     m.register,
 			HttpMethods: []string{http.MethodPost},
+			Public:      true,
 		},
 	}
 }
@@ -72,7 +74,7 @@ func (m authModule) sessionMiddleware() mux.MiddlewareFunc {
 				return
 			}
 
-			claims, err := service.ValidateToken(token, m.secret)
+			claims, err := service.ValidateToken(token, []byte(m.secret))
 			if err != nil {
 				router.HandleError(w, derr.UnauthorizedError)
 				return

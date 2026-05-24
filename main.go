@@ -42,15 +42,18 @@ func buildApp() (*mux.Router, func(), error) {
 
 	userRepository := repoimpl.NewUserRepository(dbConn)
 	linkRepository := repoimpl.NewLinkRepository(dbConn)
+	analyticsRepository := repoimpl.NewAnalyticsRepository(dbConn)
 	cleanup := func() {
 		_ = dbConn.Close()
 	}
 
-	authUseCase := usecaseimpl.NewAuthUsecase(userRepository)
+	authUseCase := usecaseimpl.NewAuthUsecase(userRepository, secret)
 	linkUseCase := usecaseimpl.NewLinkUsecase(linkRepository)
+	analyticsUseCase := usecaseimpl.NewAnalyticsUseCase(analyticsRepository)
 
 	authModule := modules.NewAuthModule(authUseCase, secret)
-	linkModule := modules.NewLinkModule(linkUseCase)
+	linkModule := modules.NewLinkModule(linkUseCase, analyticsUseCase)
+	analytcsModule := modules.NewAnalyticsModule(analyticsUseCase)
 	healthModule := modules.NewHealthModule(dbConn)
 
 	router := mux.NewRouter()
@@ -59,6 +62,7 @@ func buildApp() (*mux.Router, func(), error) {
 		authModule.Middlewares(),
 		authModule,
 		linkModule,
+		analytcsModule,
 		healthModule,
 	)
 

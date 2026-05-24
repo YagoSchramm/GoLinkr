@@ -14,17 +14,19 @@ import (
 )
 
 type linkModule struct {
-	linkUsecase usecase.LinkUsecase
-	name        string
-	path        string
-	middleware  mux.MiddlewareFunc
+	linkUseCase      usecase.LinkUsecase
+	analyticsUseCase usecase.AnalyticsUseCase
+	name             string
+	path             string
+	middleware       mux.MiddlewareFunc
 }
 
-func NewLinkModule(linkUsecase usecase.LinkUsecase) approuter.Module {
+func NewLinkModule(linkUseCase usecase.LinkUsecase, analyticsUseCase usecase.AnalyticsUseCase) approuter.Module {
 	return linkModule{
-		linkUsecase: linkUsecase,
-		name:        "Link",
-		path:        "/link",
+		analyticsUseCase: analyticsUseCase,
+		linkUseCase:      linkUseCase,
+		name:             "Link",
+		path:             "/link",
 	}
 }
 
@@ -66,7 +68,7 @@ func (m linkModule) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	link, err := m.linkUsecase.Create(r.Context(), entity.Link{
+	link, err := m.linkUseCase.Create(r.Context(), entity.Link{
 		OriginalURL: req.OriginalURL,
 	})
 	if err != nil {
@@ -86,11 +88,17 @@ func (m linkModule) redirect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	link, err := m.linkUsecase.FindByCode(r.Context(), code)
+	link, err := m.linkUseCase.FindByCode(r.Context(), code)
 	if err != nil {
 		approuter.HandleError(w, err)
 		return
 	}
-
+	var updatedAnalytics = entity.Analytics{
+		LinkID: link.ID,
+	}
+	_, err = m.analyticsUseCase.UpdateAnalytics(r.Context(), updatedAnalytics)
+	if err != nil {
+		approuter.HandleError(w, err)
+	}
 	http.Redirect(w, r, link.OriginalURL, http.StatusFound)
 }

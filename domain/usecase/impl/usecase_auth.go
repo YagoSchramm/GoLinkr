@@ -14,9 +14,10 @@ import (
 	"github.com/google/uuid"
 )
 
-func NewAuthUsecase(repository repository.UserRepository) usecase.AuthUseCase {
+func NewAuthUsecase(repository repository.UserRepository, secret string) usecase.AuthUseCase {
 	return &authUsecase{
 		repository: repository,
+		secret:     secret,
 	}
 }
 
@@ -52,7 +53,7 @@ func (a *authUsecase) AttemptRegister(ctx context.Context, user entity.User) (st
 		return "", derr.JoinError("failed to attempt register the user", err)
 	}
 
-	token, err := service2.GenerateToken(*id, user.Email, a.secret)
+	token, err := service2.GenerateToken(*id, user.Email, []byte(a.secret))
 	if err != nil {
 		return "", derr.JoinError("failed to generate the token", err)
 
@@ -90,7 +91,7 @@ func (a *authUsecase) AttemptLogin(ctx context.Context, credentials entity.UserC
 		return "", derr.InvalidCredentials
 	}
 
-	token, err := service2.GenerateToken(existedUser.ID, credentials.Email, a.secret)
+	token, err := service2.GenerateToken(existedUser.ID, credentials.Email, []byte(a.secret))
 	if err != nil {
 		return "", err
 	}
