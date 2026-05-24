@@ -8,5 +8,5 @@ import (
 
 type AnalyticsRepository interface {
 	GetAnalyticsByLinkById(ctx context.Context, linkID string) (*entity.LinkAnalyticsResponse, error)
-	UpdateAnalytics(ctx context.Context, updatedAnalytics entity.Analytics) error
+	UpdateAnalytics(ctx context.Context, updatedAnalytics entity.Analytics) (*entity.Analytics, error)
 }

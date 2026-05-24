@@ -26,9 +26,9 @@ var getAnalyticsByLinkIdQuery string
 //go:embed _query/analytics/updateAnalytics.sql
 var updateAnalyticsQuery string
 
-func (a analyticsRepository) GetAnalyticsByLinkById(ctx context.Context, linkID string) (*entity.LinkAnalyticsResponse, error) {
+func (r analyticsRepository) GetAnalyticsByLinkById(ctx context.Context, linkID string) (*entity.LinkAnalyticsResponse, error) {
 	var result entity.LinkAnalyticsResponse
-	row := a.db.QueryRowContext(
+	row := r.db.QueryRowContext(
 		ctx,
 		getLinkByCodeQuery,
 		linkID,
@@ -48,7 +48,23 @@ func (a analyticsRepository) GetAnalyticsByLinkById(ctx context.Context, linkID 
 	return &result, nil
 }
 
-func (a analyticsRepository) UpdateAnalytics(ctx context.Context, updatedAnalytics entity.Analytics) error {
-	//TODO implement me
-	panic("implement me")
+func (r analyticsRepository) UpdateAnalytics(ctx context.Context, updatedAnalytics entity.Analytics) (*entity.Analytics, error) {
+	var analytics entity.Analytics
+	row := r.db.QueryRowContext(
+		ctx,
+		updateAnalyticsQuery,
+		updatedAnalytics.LinkID,
+	)
+	if err := row.Scan(
+		&analytics.ID,
+		&analytics.LinkID,
+		&analytics.Clicks,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, derr.NotFoundError
+		}
+		return nil, derr.JoinError("failed to scan the link", err)
+	}
+
+	return &analytics, nil
 }
