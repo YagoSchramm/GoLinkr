@@ -34,7 +34,7 @@ func (a *authUsecase) AttemptRegister(ctx context.Context, user entity.User) (st
 
 	existedUser, err := a.repository.GetUserByEmail(ctx, user.Email)
 	if err != nil && !errors.Is(err, derr.NotFoundError) {
-		return "", derr.JoinError("failed to get user by email", err)
+		return "", derr.JoinError("invalid credentials", derr.InvalidCredentials)
 	}
 
 	if existedUser != nil {
@@ -70,11 +70,11 @@ func (a *authUsecase) AttemptLogin(ctx context.Context, credentials entity.UserC
 
 	existedUser, err := a.repository.GetUserByEmail(ctx, credentials.Email)
 	if err != nil && !errors.Is(err, derr.NotFoundError) {
-		return "", derr.JoinError("failed to get user by email", err)
+		return "", derr.InvalidCredentials
 	}
 
 	if existedUser == nil {
-		return "", derr.NotFoundError
+		return "", derr.InvalidCredentials
 	}
 
 	user, err := a.repository.AttemptLogin(ctx, credentials)
@@ -83,7 +83,7 @@ func (a *authUsecase) AttemptLogin(ctx context.Context, credentials entity.UserC
 	}
 
 	if user == nil {
-		return "", derr.NewNotFoundError("user not found")
+		return "", derr.InvalidCredentials
 	}
 
 	valid := service.CheckPassword(credentials.Password, user.Password)

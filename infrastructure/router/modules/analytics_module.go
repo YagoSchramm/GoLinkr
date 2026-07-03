@@ -54,14 +54,14 @@ func (m analyticsModule) getAnalyticsByLinkId(w http.ResponseWriter, r *http.Req
 	ctx := r.Context()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to read request body", err) // needs logger
+		slog.ErrorContext(ctx, "failed to read request body", err)
 		router.HandleError(w, err)
 		return
 	}
 	var analytics entity.GetAnalyticsDTO
 	err = json.Unmarshal(body, &analytics)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to unmarshal request body", err) // needs logger
+		slog.ErrorContext(ctx, "failed to unmarshal request body", err)
 		router.HandleError(w, err)
 		return
 	}
@@ -74,7 +74,7 @@ func (m analyticsModule) getAnalyticsByLinkId(w http.ResponseWriter, r *http.Req
 
 	err = router.Write(w, response)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to write response", err) // needs logger
+		slog.ErrorContext(ctx, "failed to write response", err)
 		router.HandleError(w, err)
 		return
 	}
