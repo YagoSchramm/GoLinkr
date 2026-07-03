@@ -34,6 +34,9 @@ func buildApp() (*mux.Router, func(), error) {
 	if dsn == "" {
 		return nil, func() {}, errors.New("DATABASE_URL is not set")
 	}
+	if secret == "" {
+		return nil, func() {}, errors.New("JWT_SECRET is not set")
+	}
 
 	dbConn, err := db.NewPostgresConnection(dsn)
 	if err != nil {

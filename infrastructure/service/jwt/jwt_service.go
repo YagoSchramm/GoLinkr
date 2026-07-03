@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -15,7 +14,6 @@ type Claims struct {
 }
 
 func GenerateToken(userID uuid.UUID, email string, secret []byte) (string, error) {
-	fmt.Println("HORÁRIO ATUAL DO SERVIDOR GO:", time.Now())
 	claims := Claims{
 		UserID: userID,
 		Email:  email,
@@ -31,11 +29,10 @@ func GenerateToken(userID uuid.UUID, email string, secret []byte) (string, error
 }
 
 func ValidateToken(tokenString string, secret []byte) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (any, error) {
 		return secret, nil
 	})
 	if err != nil {
-		println("ERRO REAL DO JWT:", err.Error())
 		return nil, err
 	}
 
