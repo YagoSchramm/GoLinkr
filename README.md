@@ -1,23 +1,81 @@
 # GoLinkr
 
-GoLinkr is a simple URL shortener built with Go, Gorilla Mux, and PostgreSQL.
+GoLinkr is a small URL shortener API built with Go, Gorilla Mux, PostgreSQL, and JWT-based authentication.
 
-## What is working now
+## Current Features
 
-- Create a short link from a long URL.
-- Redirect by short code.
-- PostgreSQL-backed repository.
-- JSON request/response DTOs.
+- User registration and login with password hashing.
+- JWT-protected routes for creating links and reading analytics.
+- Short link creation from a long URL.
+- Public redirect by short code.
+- Redirect click tracking through the analytics repository.
+- PostgreSQL-backed repositories.
+- JSON request and response DTOs.
 - Route registration using the `module` and `router` pattern.
-- Local config loading from `.env`.
+- Local configuration loading from `.env`.
+- Health checks for the API and database connection.
 
-## Current API
+## API Overview
 
-### Create link
+Public routes do not require authentication. Protected routes require:
+
+```http
+Authorization: Bearer <token>
+```
+
+### Auth
+
+#### Register
+
+- `POST /auth/register`
+- Public
+
+Request body:
+
+```json
+{
+  "name": "Ada Lovelace",
+  "email": "ada@example.com",
+  "password": "strong-password"
+}
+```
+
+Response:
+
+```json
+"<jwt-token>"
+```
+
+The same token is also returned in the `Authorization` response header.
+
+#### Login
+
+- `POST /auth/login`
+- Public
+
+Request body:
+
+```json
+{
+  "email": "ada@example.com",
+  "password": "strong-password"
+}
+```
+
+Response:
+
+```json
+"<jwt-token>"
+```
+
+The same token is also returned in the `Authorization` response header.
+
+### Links
+
+#### Create Link
 
 - `POST /link`
-- `GET /health`
-- `GET /health/db`
+- Protected
 
 Request body:
 
@@ -39,40 +97,94 @@ Response example:
 }
 ```
 
-### Redirect
+#### Redirect
 
 - `GET /link/{code}`
+- Public
 
-This returns a `302 Found` redirect to the original URL.
+Returns a `302 Found` redirect to the original URL and increments the link analytics counter.
+
+### Analytics
+
+#### Get Analytics By Link ID
+
+- `GET /analytics/`
+- Protected
+
+Request body:
+
+```json
+{
+  "link_id": "b3d4b0f2-4e6a-4f6b-9f7b-1c2d3e4f5a6b"
+}
+```
+
+Response example:
+
+```json
+{
+  "id": "8c88c9c7-35a3-45c5-84f9-39cf188fa9e7",
+  "link_id": "b3d4b0f2-4e6a-4f6b-9f7b-1c2d3e4f5a6b",
+  "clicks": 12
+}
+```
 
 ### Health
 
-- `GET /health`
+#### Liveness
 
-Returns a simple liveness response.
+- `GET /health`
+- Public
+
+Response example:
+
+```json
+{
+  "code": "SUCCESS",
+  "message": "service is healthy"
+}
+```
+
+#### Database Readiness
 
 - `GET /health/db`
+- Public
 
-Returns `200 OK` when the API can ping PostgreSQL and `503 Service Unavailable` when it cannot.
+Returns `200 OK` when the API can ping PostgreSQL:
+
+```json
+{
+  "code": "SUCCESS",
+  "message": "service is ready",
+  "database": "up"
+}
+```
+
+Returns `503 Service Unavailable` when PostgreSQL is not reachable.
 
 ## Project Structure
 
-- `domain/entity` - core entities
+- `domain/entity` - core entities and domain errors
+- `domain/rules` - validation rules
 - `domain/usecase` - use case contracts
 - `domain/usecase/impl` - use case implementations
 - `domain/usecase/dtos` - request and response DTOs
 - `domain/util` - domain helpers
 - `infrastructure/datastore/repository` - repository contracts
-- `infrastructure/datastore/repository/impl` - PostgreSQL implementation
-- `infrastructure/router` - module/router primitives
-- `infrastructure/router/modules` - application modules
+- `infrastructure/datastore/repository/impl` - PostgreSQL repository implementations
+- `infrastructure/datastore/repository/impl/_query` - SQL query files
+- `infrastructure/router` - module/router primitives and HTTP helpers
+- `infrastructure/router/modules` - HTTP modules
+- `infrastructure/service/db` - PostgreSQL connection setup
+- `infrastructure/service/hash` - password hashing service
+- `infrastructure/service/jwt` - JWT generation and validation
 - `infrastructure/script/migrate` - SQL bootstrap scripts
 
-## How to run locally
+## How To Run Locally
 
 ### 1. Start PostgreSQL
 
-The current `docker-compose.yml` starts only the database and mounts the init SQL.
+The current `docker-compose.yml` starts only the database and mounts the initial SQL script.
 
 ```powershell
 docker compose down -v
@@ -81,26 +193,30 @@ docker compose up -d db
 
 The database is exposed on port `5433`.
 
-### 2. Run the API
+### 2. Configure Environment Variables
 
-The app reads `DATABASE_URL` from `.env`.
+The app reads configuration from `.env`.
+
+```env
+DATABASE_URL="postgres://golinkr:golinkr@localhost:5433/golinkr?sslmode=disable"
+JWT_SECRET="change-this-secret"
+```
+
+### 3. Run The API
 
 ```powershell
 go run .
 ```
 
-Current `.env` example:
+The API listens on `http://localhost:8080`.
 
-```env
-DATABASE_URL="postgres://golinkr:golinkr@localhost:5433/golinkr?sslmode=disable"
-```
+### 4. Try The Main Flow
 
-### 3. Test with Insomnia
-
-- `POST http://localhost:8080/link`
-- `GET http://localhost:8080/link/{code}`
-- `GET http://localhost:8080/health`
-- `GET http://localhost:8080/health/db`
+1. Register or log in to receive a JWT.
+2. Send the JWT as `Authorization: Bearer <token>`.
+3. Create a link with `POST http://localhost:8080/link`.
+4. Open `GET http://localhost:8080/link/{code}` to redirect.
+5. Read analytics with `GET http://localhost:8080/analytics/`.
 
 ## Database
 
@@ -114,17 +230,17 @@ Tables currently included:
 - `links`
 - `analytics`
 
-## What is still missing
+## Known Gaps
 
-- A proper migration runner in the repo.
-- A production Docker image for the API.
-- Tests for HTTP routes and use cases.
-- Better error mapping and validation responses.
-- Pagination and richer CRUD for users and analytics.
-- Click tracking for link redirects.
+- There is no migration runner yet; Docker mounts the initial SQL file directly.
+- The API does not have a production Docker image yet.
+- Automated tests are still missing.
+- Link ownership is not currently persisted on the `links` table.
+- Analytics are queried with a JSON body on a `GET` request, which may be revised later.
+- Validation and error responses can still be made more consistent.
 
 ## Notes
 
 - The API currently runs locally with `go run .`.
-- The database is managed separately with Docker.
-- If you change the database credentials, update `.env` as well.
+- PostgreSQL is managed separately with Docker.
+- If you change database credentials or the JWT secret, update `.env` as well.
