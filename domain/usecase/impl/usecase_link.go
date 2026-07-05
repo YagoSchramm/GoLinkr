@@ -10,6 +10,7 @@ import (
 	"github.com/YagoSchramm/Golinkr/domain/rules"
 	"github.com/YagoSchramm/Golinkr/domain/usecase"
 	"github.com/YagoSchramm/Golinkr/infrastructure/datastore/repository"
+	"github.com/google/uuid"
 )
 
 func NewLinkUsecase(repository repository.LinkRepository) usecase.LinkUsecase {
@@ -23,6 +24,10 @@ type linkUsecase struct {
 }
 
 func (l *linkUsecase) Create(ctx context.Context, link entity.Link) (*entity.Link, error) {
+	if link.UserId == uuid.Nil {
+		return nil, derr.UnauthorizedError
+	}
+
 	if err := rules.ValidateURL(link.OriginalURL); err != nil {
 		return nil, err
 	}
@@ -40,6 +45,14 @@ func (l *linkUsecase) Create(ctx context.Context, link entity.Link) (*entity.Lin
 
 func (l *linkUsecase) FindByCode(ctx context.Context, code string) (*entity.Link, error) {
 	return l.repository.FindByCode(ctx, code)
+}
+
+func (l *linkUsecase) ListByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Link, error) {
+	if userID == uuid.Nil {
+		return nil, derr.UnauthorizedError
+	}
+
+	return l.repository.ListByUserID(ctx, userID)
 }
 
 func generateCode(size int) (string, error) {

@@ -8,6 +8,7 @@ import (
 	"github.com/YagoSchramm/Golinkr/domain/entity"
 	"github.com/YagoSchramm/Golinkr/domain/entity/derr"
 	"github.com/YagoSchramm/Golinkr/infrastructure/datastore/repository"
+	"github.com/google/uuid"
 )
 
 func NewLinkRepository(db *sql.DB) repository.LinkRepository {
@@ -26,6 +27,9 @@ var createLinkQuery string
 //go:embed _query/link/GetLinkByCode.sql
 var getLinkByCodeQuery string
 
+//go:embed _query/link/ListLinksByUserId.sql
+var listLinksByUserIdQuery string
+
 func (r *linkRepository) FindByCode(ctx context.Context, code string) (*entity.Link, error) {
 	row := r.db.QueryRowContext(
 		ctx,
@@ -36,6 +40,7 @@ func (r *linkRepository) FindByCode(ctx context.Context, code string) (*entity.L
 	var link entity.Link
 	if err := row.Scan(
 		&link.ID,
+		&link.UserId,
 		&link.Code,
 		&link.OriginalURL,
 		&link.CreatedAt,
@@ -54,9 +59,10 @@ func (r *linkRepository) Save(ctx context.Context, link entity.Link) (*entity.Li
 	err := r.db.QueryRowContext(
 		ctx,
 		createLinkQuery,
+		link.UserId,
 		link.Code,
 		link.OriginalURL,
-	).Scan(&result.ID, &result.CreatedAt)
+	).Scan(&result.ID, &result.UserId, &result.CreatedAt)
 	if err != nil {
 		return nil, derr.JoinError("failed to execute the query", err)
 	}
@@ -65,4 +71,34 @@ func (r *linkRepository) Save(ctx context.Context, link entity.Link) (*entity.Li
 	result.OriginalURL = link.OriginalURL
 
 	return &result, nil
+}
+
+func (r *linkRepository) ListByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Link, error) {
+	rows, err := r.db.QueryContext(ctx, listLinksByUserIdQuery, userID)
+	if err != nil {
+		return nil, derr.JoinError("failed to execute the query", err)
+	}
+	defer rows.Close()
+
+	links := make([]entity.Link, 0)
+	for rows.Next() {
+		var link entity.Link
+		if err := rows.Scan(
+			&link.ID,
+			&link.UserId,
+			&link.Code,
+			&link.OriginalURL,
+			&link.CreatedAt,
+		); err != nil {
+			return nil, derr.JoinError("failed to scan the link", err)
+		}
+
+		links = append(links, link)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, derr.JoinError("failed to read the links", err)
+	}
+
+	return links, nil
 }

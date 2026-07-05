@@ -8,6 +8,7 @@ import (
 	"github.com/YagoSchramm/Golinkr/domain/entity"
 	"github.com/YagoSchramm/Golinkr/domain/entity/derr"
 	"github.com/YagoSchramm/Golinkr/infrastructure/datastore/repository"
+	"github.com/google/uuid"
 )
 
 func NewAnalyticsRepository(db *sql.DB) repository.AnalyticsRepository {
@@ -26,14 +27,17 @@ var getAnalyticsByLinkIdQuery string
 //go:embed _query/analytics/updateAnalytics.sql
 var updateAnalyticsQuery string
 
-func (r analyticsRepository) GetAnalyticsByLinkById(ctx context.Context, linkID string) (*entity.Analytics, error) {
+func (r analyticsRepository) GetAnalyticsByLinkById(ctx context.Context, linkID string, userID uuid.UUID) (*entity.Analytics, error) {
 	var result entity.Analytics
 	row := r.db.QueryRowContext(
 		ctx,
 		getAnalyticsByLinkIdQuery,
 		linkID,
+		userID,
 	)
 	if err := row.Scan(
+		&result.ID,
+		&result.LinkID,
 		&result.Clicks,
 	); err != nil {
 		if err == sql.ErrNoRows {
