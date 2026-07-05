@@ -6,6 +6,7 @@ import (
 	"github.com/YagoSchramm/Golinkr/domain/entity"
 	"github.com/YagoSchramm/Golinkr/domain/usecase"
 	"github.com/YagoSchramm/Golinkr/infrastructure/datastore/repository"
+	"github.com/google/uuid"
 )
 
 func NewAnalyticsUseCase(repository repository.AnalyticsRepository) usecase.AnalyticsUseCase {
@@ -22,6 +23,6 @@ func (u analyticsUseCase) UpdateAnalytics(ctx context.Context, updatedAnalytics 
 	return u.repository.UpdateAnalytics(ctx, updatedAnalytics)
 }
 
-func (u analyticsUseCase) GetByLinkId(ctx context.Context, link_id string) (*entity.Analytics, error) {
-	return u.repository.GetAnalyticsByLinkById(ctx, link_id)
+func (u analyticsUseCase) GetByLinkId(ctx context.Context, linkID string, userID uuid.UUID) (*entity.Analytics, error) {
+	return u.repository.GetAnalyticsByLinkById(ctx, linkID, userID)
 }
