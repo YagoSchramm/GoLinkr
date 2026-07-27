@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	_ "embed"
+	"log"
 
 	"github.com/YagoSchramm/Golinkr/domain/entity"
 	"github.com/YagoSchramm/Golinkr/domain/entity/derr"
@@ -59,11 +60,13 @@ func (r *linkRepository) Save(ctx context.Context, link entity.Link) (*entity.Li
 	err := r.db.QueryRowContext(
 		ctx,
 		createLinkQuery,
-		link.UserId,
 		link.Code,
 		link.OriginalURL,
 	).Scan(&result.ID, &result.UserId, &result.CreatedAt)
 	if err != nil {
+		log.Printf("Erro do banco: %v\n", err)
+		log.Printf("Erro detalhado: %#v\n", err)
+
 		return nil, derr.JoinError("failed to execute the query", err)
 	}
 

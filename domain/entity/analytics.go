@@ -11,5 +11,6 @@ type Analytics struct {
 }
 
 type GetAnalyticsDTO struct {
-	LinkID string `json:"link_id,omitempty"`
+	UserID uuid.UUID `json:"user_id"`
+	LinkID string    `json:"link_id,omitempty"`
 }

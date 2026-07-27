@@ -65,7 +65,7 @@ func (m analyticsModule) getAnalyticsByLinkId(w http.ResponseWriter, r *http.Req
 		router.HandleError(w, err)
 		return
 	}
-	response, err := m.useCase.GetByLinkId(ctx, analytics.LinkID)
+	response, err := m.useCase.GetByLinkId(ctx, analytics.LinkID, analytics.UserID)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to get the analytics by link id", err)
 		router.HandleError(w, err)
