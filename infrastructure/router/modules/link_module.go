@@ -10,6 +10,7 @@ import (
 	"github.com/YagoSchramm/Golinkr/domain/usecase/dtos"
 	domainutil "github.com/YagoSchramm/Golinkr/domain/util"
 	approuter "github.com/YagoSchramm/Golinkr/infrastructure/router"
+	service "github.com/YagoSchramm/Golinkr/infrastructure/service/jwt"
 	"github.com/gorilla/mux"
 )
 
@@ -68,14 +69,16 @@ func (m linkModule) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	claims := r.Context().Value("user_claims").(*service.Claims)
+
 	link, err := m.linkUseCase.Create(r.Context(), entity.Link{
 		OriginalURL: req.OriginalURL,
+		UserId:      claims.UserID,
 	})
 	if err != nil {
 		approuter.HandleError(w, err)
 		return
 	}
-
 	if err := approuter.Write(w, domainutil.BuildLinkDTO(r, *link)); err != nil {
 		approuter.HandleError(w, err)
 	}
