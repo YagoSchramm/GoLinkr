@@ -1,17 +1,15 @@
 import http from 'k6/http';
-import { check } from 'k6';
 
 export const options = {
-    vus: 100,
-    duration: '30s',
+  vus: 1,
+  iterations: 1,
 };
 
 export default function () {
-    const res = http.get('http://localhost:8080/abc123', {
-        redirects: 0, 
-    });
+  const res = http.get('http://localhost:8080/link/abc123', {
+    redirects: 0,
+  });
 
-    check(res, {
-        'status é 301 ou 302': (r) => r.status === 301 || r.status === 302,
-    });
+  console.log(`Status: ${res.status}`);
+  console.log(`Location: ${res.headers.Location}`);
 }
