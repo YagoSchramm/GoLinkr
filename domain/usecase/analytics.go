@@ -8,6 +8,6 @@ import (
 )
 
 type AnalyticsUseCase interface {
-	GetByLinkId(ctx context.Context, linkID string, userID uuid.UUID) (*entity.Analytics, error)
+	GetByLinkId(ctx context.Context, linkID uuid.UUID, userID uuid.UUID) (*entity.Analytics, error)
 	UpdateAnalytics(ctx context.Context, updatedAnalytics entity.Analytics) (*entity.Analytics, error)
 }
