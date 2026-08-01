@@ -9,8 +9,3 @@ type Analytics struct {
 	LinkID uuid.UUID `json:"link_id,omitempty"`
 	Clicks int64     `json:"clicks"`
 }
-
-type GetAnalyticsDTO struct {
-	UserID uuid.UUID `json:"user_id"`
-	LinkID string    `json:"link_id,omitempty"`
-}

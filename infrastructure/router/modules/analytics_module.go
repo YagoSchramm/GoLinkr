@@ -1,15 +1,15 @@
 package modules
 
 import (
-	"encoding/json"
-	"io"
 	"log/slog"
 	"net/http"
 
-	"github.com/YagoSchramm/Golinkr/domain/entity"
+	"github.com/YagoSchramm/Golinkr/domain/entity/derr"
 	"github.com/YagoSchramm/Golinkr/domain/usecase"
 	"github.com/YagoSchramm/Golinkr/infrastructure/router"
+	service "github.com/YagoSchramm/Golinkr/infrastructure/service/jwt"
 	"github.com/gorilla/mux"
+	"github.com/google/uuid"
 )
 
 func NewAnalyticsModule(analyticUseCase usecase.AnalyticsUseCase) router.Module {
@@ -37,7 +37,7 @@ func (m analyticsModule) Path() string {
 func (m analyticsModule) Routes() []router.RouteDefinition {
 	return []router.RouteDefinition{
 		{
-			Path:        "/",
+			Path:        "/{link_id}",
 			Description: "Get the analytics from the link",
 			Handler:     m.getAnalyticsByLinkId,
 			HttpMethods: []string{http.MethodGet},
@@ -52,20 +52,15 @@ func (m analyticsModule) Middlewares() []mux.MiddlewareFunc {
 
 func (m analyticsModule) getAnalyticsByLinkId(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	body, err := io.ReadAll(r.Body)
+
+	linkID, err := uuid.Parse(mux.Vars(r)["link_id"])
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to read request body", err)
-		router.HandleError(w, err)
+		router.HandleError(w, derr.InvalidLinkId)
 		return
 	}
-	var analytics entity.GetAnalyticsDTO
-	err = json.Unmarshal(body, &analytics)
-	if err != nil {
-		slog.ErrorContext(ctx, "failed to unmarshal request body", err)
-		router.HandleError(w, err)
-		return
-	}
-	response, err := m.useCase.GetByLinkId(ctx, analytics.LinkID, analytics.UserID)
+
+	claims := r.Context().Value("user_claims").(*service.Claims)
+	response, err := m.useCase.GetByLinkId(ctx, linkID, claims.UserID)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to get the analytics by link id", err)
 		router.HandleError(w, err)

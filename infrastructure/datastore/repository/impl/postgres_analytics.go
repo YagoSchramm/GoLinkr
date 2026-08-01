@@ -27,7 +27,7 @@ var getAnalyticsByLinkIdQuery string
 //go:embed _query/analytics/updateAnalytics.sql
 var updateAnalyticsQuery string
 
-func (r analyticsRepository) GetAnalyticsByLinkById(ctx context.Context, linkID string, userID uuid.UUID) (*entity.Analytics, error) {
+func (r analyticsRepository) GetAnalyticsByLinkById(ctx context.Context, linkID uuid.UUID, userID uuid.UUID) (*entity.Analytics, error) {
 	var result entity.Analytics
 	row := r.db.QueryRowContext(
 		ctx,

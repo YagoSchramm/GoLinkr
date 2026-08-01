@@ -108,16 +108,8 @@ Returns a `302 Found` redirect to the original URL and increments the link analy
 
 #### Get Analytics By Link ID
 
-- `GET /analytics/`
+- `GET /analytics/{link_id}`
 - Protected
-
-Request body:
-
-```json
-{
-  "link_id": "b3d4b0f2-4e6a-4f6b-9f7b-1c2d3e4f5a6b"
-}
-```
 
 Response example:
 
@@ -216,7 +208,7 @@ The API listens on `http://localhost:8080`.
 2. Send the JWT as `Authorization: Bearer <token>`.
 3. Create a link with `POST http://localhost:8080/link`.
 4. Open `GET http://localhost:8080/link/{code}` to redirect.
-5. Read analytics with `GET http://localhost:8080/analytics/`.
+5. Read analytics with `GET http://localhost:8080/analytics/{link_id}`.
 
 ## Database
 
@@ -235,8 +227,6 @@ Tables currently included:
 - There is no migration runner yet; Docker mounts the initial SQL file directly.
 - The API does not have a production Docker image yet.
 - Automated tests are still missing.
-- Link ownership is not currently persisted on the `links` table.
-- Analytics are queried with a JSON body on a `GET` request, which may be revised later.
 - Validation and error responses can still be made more consistent.
 
 ## Notes
