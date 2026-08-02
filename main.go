@@ -11,6 +11,7 @@ import (
 	repoimpl "github.com/YagoSchramm/Golinkr/infrastructure/datastore/repository/impl"
 	approuter "github.com/YagoSchramm/Golinkr/infrastructure/router"
 	"github.com/YagoSchramm/Golinkr/infrastructure/router/modules"
+	routerutil "github.com/YagoSchramm/Golinkr/infrastructure/router/util"
 	"github.com/YagoSchramm/Golinkr/infrastructure/service/db"
 	"github.com/gorilla/mux"
 )
@@ -60,6 +61,7 @@ func buildApp() (*mux.Router, func(), error) {
 	healthModule := modules.NewHealthModule(dbConn)
 
 	router := mux.NewRouter()
+	router.Use(routerutil.LoggingMiddleware)
 	approuter.Mount(
 		router,
 		authModule.Middlewares(),
