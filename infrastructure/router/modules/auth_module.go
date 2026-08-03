@@ -97,7 +97,7 @@ func (m authModule) login(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to read request body", err)
+		slog.ErrorContext(ctx, "failed to read request body", slog.Any("err", err))
 		router.HandleError(w, err)
 		return
 	}
@@ -105,14 +105,14 @@ func (m authModule) login(w http.ResponseWriter, r *http.Request) {
 	var credentials entity.UserCredentials
 	err = json.Unmarshal(body, &credentials)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to unmarshal request body", err)
+		slog.ErrorContext(ctx, "failed to unmarshal request body", slog.Any("err", err))
 		router.HandleError(w, err)
 		return
 	}
 
 	token, err := m.authUseCase.AttemptLogin(ctx, credentials)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to attempt login", err)
+		slog.ErrorContext(ctx, "failed to attempt login", slog.Any("err", err))
 		router.HandleError(w, err)
 		return
 	}
@@ -120,7 +120,7 @@ func (m authModule) login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Authorization", "Bearer "+token)
 	err = router.Write(w, token)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to write response", err)
+		slog.ErrorContext(ctx, "failed to write response", slog.Any("err", err))
 	}
 }
 
@@ -129,7 +129,7 @@ func (m authModule) register(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to read request body", err)
+		slog.ErrorContext(ctx, "failed to read request body", slog.Any("err", err))
 		router.HandleError(w, err)
 		return
 	}
@@ -137,13 +137,13 @@ func (m authModule) register(w http.ResponseWriter, r *http.Request) {
 	var user entity.User
 	err = json.Unmarshal(body, &user)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to unmarshal request body", err)
+		slog.ErrorContext(ctx, "failed to unmarshal request body", slog.Any("err", err))
 		return
 	}
 
 	token, err := m.authUseCase.AttemptRegister(ctx, user)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to attempt register", err)
+		slog.ErrorContext(ctx, "failed to attempt register", slog.Any("err", err))
 		router.HandleError(w, err)
 		return
 	}
@@ -151,6 +151,6 @@ func (m authModule) register(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Authorization", "Bearer "+token)
 	err = router.Write(w, token)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to write response", err)
+		slog.ErrorContext(ctx, "failed to write response", slog.Any("err", err))
 	}
 }
