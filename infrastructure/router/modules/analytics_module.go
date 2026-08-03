@@ -62,14 +62,14 @@ func (m analyticsModule) getAnalyticsByLinkId(w http.ResponseWriter, r *http.Req
 	claims := r.Context().Value("user_claims").(*service.Claims)
 	response, err := m.useCase.GetByLinkId(ctx, linkID, claims.UserID)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to get the analytics by link id", err)
+		slog.ErrorContext(ctx, "failed to get the analytics by link id", slog.Any("err", err))
 		router.HandleError(w, err)
 		return
 	}
 
 	err = router.Write(w, response)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to write response", err)
+		slog.ErrorContext(ctx, "failed to write response", slog.Any("err", err))
 		router.HandleError(w, err)
 		return
 	}
