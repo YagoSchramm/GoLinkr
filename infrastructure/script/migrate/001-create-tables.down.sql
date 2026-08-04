@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS analytics_clicks;
 DROP TABLE IF EXISTS analytics;
 DROP TABLE IF EXISTS links;
 DROP TABLE IF EXISTS users;

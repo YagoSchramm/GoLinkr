@@ -39,3 +39,11 @@ func (u analyticsUseCase) GetByLinkId(ctx context.Context, linkID uuid.UUID, use
 
 	return u.repository.GetAnalyticsByLinkById(ctx, linkID, userID)
 }
+
+func (u analyticsUseCase) ListHourlyClickAverages(ctx context.Context, linkID uuid.UUID, userID uuid.UUID) ([]entity.HourlyClickAverage, error) {
+	if err := rules.ValidateHourlyClickAverage(linkID, userID); err != nil {
+		return nil, err
+	}
+
+	return u.repository.ListHourlyClickAverages(ctx, linkID, userID)
+}

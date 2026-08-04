@@ -20,3 +20,12 @@ CREATE TABLE IF NOT EXISTS analytics (
 	link_id UUID NOT NULL UNIQUE REFERENCES links(id) ON DELETE CASCADE,
 	clicks BIGINT NOT NULL DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS analytics_clicks (
+	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	link_id UUID NOT NULL REFERENCES links(id) ON DELETE CASCADE,
+	clicked_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_analytics_clicks_link_id_clicked_at
+	ON analytics_clicks (link_id, clicked_at);

@@ -43,6 +43,13 @@ func (m analyticsModule) Routes() []router.RouteDefinition {
 			HttpMethods: []string{http.MethodGet},
 			Public:      false,
 		},
+		{
+			Path:        "/{link_id}/hourly-click-averages",
+			Description: "List hourly click averages from the link",
+			Handler:     m.listHourlyClickAverages,
+			HttpMethods: []string{http.MethodGet},
+			Public:      false,
+		},
 	}
 }
 
@@ -63,6 +70,31 @@ func (m analyticsModule) getAnalyticsByLinkId(w http.ResponseWriter, r *http.Req
 	response, err := m.useCase.GetByLinkId(ctx, linkID, claims.UserID)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to get the analytics by link id", slog.Any("err", err))
+		router.HandleError(w, err)
+		return
+	}
+
+	err = router.Write(w, response)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to write response", slog.Any("err", err))
+		router.HandleError(w, err)
+		return
+	}
+}
+
+func (m analyticsModule) listHourlyClickAverages(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	linkID, err := uuid.Parse(mux.Vars(r)["link_id"])
+	if err != nil {
+		router.HandleError(w, derr.InvalidLinkId)
+		return
+	}
+
+	claims := r.Context().Value("user_claims").(*service.Claims)
+	response, err := m.useCase.ListHourlyClickAverages(ctx, linkID, claims.UserID)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to list hourly click averages", slog.Any("err", err))
 		router.HandleError(w, err)
 		return
 	}
