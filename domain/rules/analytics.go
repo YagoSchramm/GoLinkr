@@ -12,3 +12,13 @@ func ValidateAnalytics(analytics entity.Analytics) error {
 	}
 	return nil
 }
+
+func ValidateHourlyClickAverage(linkID uuid.UUID, userID uuid.UUID) error {
+	if linkID == uuid.Nil {
+		return derr.InvalidLinkId
+	}
+	if userID == uuid.Nil {
+		return derr.UnauthorizedError
+	}
+	return nil
+}
