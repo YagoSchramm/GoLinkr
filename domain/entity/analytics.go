@@ -14,3 +14,8 @@ type HourlyClickAverage struct {
 	Hour          int     `json:"hour"`
 	AverageClicks float64 `json:"average_clicks"`
 }
+
+type WeekdayClickAverage struct {
+	DayOfWeek     int     `json:"day_of_week"`
+	AverageClicks float64 `json:"average_clicks"`
+}

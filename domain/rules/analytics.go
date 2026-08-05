@@ -22,3 +22,13 @@ func ValidateHourlyClickAverage(linkID uuid.UUID, userID uuid.UUID) error {
 	}
 	return nil
 }
+
+func ValidateWeekdayClickAverage(linkID uuid.UUID, userID uuid.UUID) error {
+	if linkID == uuid.Nil {
+		return derr.InvalidLinkId
+	}
+	if userID == uuid.Nil {
+		return derr.UnauthorizedError
+	}
+	return nil
+}
