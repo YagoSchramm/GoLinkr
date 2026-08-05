@@ -47,3 +47,11 @@ func (u analyticsUseCase) ListHourlyClickAverages(ctx context.Context, linkID uu
 
 	return u.repository.ListHourlyClickAverages(ctx, linkID, userID)
 }
+
+func (u analyticsUseCase) ListWeekdayClickAverages(ctx context.Context, linkID uuid.UUID, userID uuid.UUID) ([]entity.WeekdayClickAverage, error) {
+	if err := rules.ValidateWeekdayClickAverage(linkID, userID); err != nil {
+		return nil, err
+	}
+
+	return u.repository.ListWeekdayClickAverages(ctx, linkID, userID)
+}

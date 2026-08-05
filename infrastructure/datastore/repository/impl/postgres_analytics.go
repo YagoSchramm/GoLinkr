@@ -30,6 +30,9 @@ var updateAnalyticsQuery string
 //go:embed _query/analytics/listHourlyClickAverages.sql
 var listHourlyClickAveragesQuery string
 
+//go:embed _query/analytics/listWeekdayClickAverages.sql
+var listWeekdayClickAveragesQuery string
+
 func (r analyticsRepository) GetAnalyticsByLinkById(ctx context.Context, linkID uuid.UUID, userID uuid.UUID) (*entity.Analytics, error) {
 	var result entity.Analytics
 	row := r.db.QueryRowContext(
@@ -73,6 +76,37 @@ func (r analyticsRepository) ListHourlyClickAverages(ctx context.Context, linkID
 
 	if err := rows.Err(); err != nil {
 		return nil, derr.JoinError("failed to read the hourly click averages", err)
+	}
+
+	if len(averages) == 0 {
+		return nil, derr.NotFoundError
+	}
+
+	return averages, nil
+}
+
+func (r analyticsRepository) ListWeekdayClickAverages(ctx context.Context, linkID uuid.UUID, userID uuid.UUID) ([]entity.WeekdayClickAverage, error) {
+	rows, err := r.db.QueryContext(ctx, listWeekdayClickAveragesQuery, linkID, userID)
+	if err != nil {
+		return nil, derr.JoinError("failed to execute the query", err)
+	}
+	defer rows.Close()
+
+	averages := make([]entity.WeekdayClickAverage, 0)
+	for rows.Next() {
+		var average entity.WeekdayClickAverage
+		if err := rows.Scan(
+			&average.DayOfWeek,
+			&average.AverageClicks,
+		); err != nil {
+			return nil, derr.JoinError("failed to scan the weekday click averages", err)
+		}
+
+		averages = append(averages, average)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, derr.JoinError("failed to read the weekday click averages", err)
 	}
 
 	if len(averages) == 0 {
