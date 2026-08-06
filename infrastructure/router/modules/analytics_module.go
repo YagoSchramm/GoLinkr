@@ -51,6 +51,13 @@ func (m analyticsModule) Routes() []router.RouteDefinition {
 			Public:      false,
 		},
 		{
+			Path:        "/{link_id}/monthly-week-click-averages",
+			Description: "List monthly week click averages from the link",
+			Handler:     m.listMonthlyWeekClickAverages,
+			HttpMethods: []string{http.MethodGet},
+			Public:      false,
+		},
+		{
 			Path:        "/{link_id}/weekday-click-averages",
 			Description: "List weekday click averages from the link",
 			Handler:     m.listWeekdayClickAverages,
@@ -77,6 +84,31 @@ func (m analyticsModule) getAnalyticsByLinkId(w http.ResponseWriter, r *http.Req
 	response, err := m.useCase.GetByLinkId(ctx, linkID, claims.UserID)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to get the analytics by link id", slog.Any("err", err))
+		router.HandleError(w, err)
+		return
+	}
+
+	err = router.Write(w, response)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to write response", slog.Any("err", err))
+		router.HandleError(w, err)
+		return
+	}
+}
+
+func (m analyticsModule) listMonthlyWeekClickAverages(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	linkID, err := uuid.Parse(mux.Vars(r)["link_id"])
+	if err != nil {
+		router.HandleError(w, derr.InvalidLinkId)
+		return
+	}
+
+	claims := r.Context().Value("user_claims").(*service.Claims)
+	response, err := m.useCase.ListMonthlyWeekClickAverages(ctx, linkID, claims.UserID)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to list monthly week click averages", slog.Any("err", err))
 		router.HandleError(w, err)
 		return
 	}
