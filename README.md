@@ -9,6 +9,8 @@ GoLinkr is a small URL shortener API built with Go, Gorilla Mux, PostgreSQL, and
 - Short link creation from a long URL.
 - Public redirect by short code.
 - Redirect click tracking through the analytics repository.
+- Click history tracking for time-based analytics.
+- Analytics grouped by hour, weekday, and week of the month.
 - PostgreSQL-backed repositories.
 - JSON request and response DTOs.
 - Route registration using the `module` and `router` pattern.
@@ -121,6 +123,72 @@ Response example:
 }
 ```
 
+#### List Hourly Click Averages
+
+- `GET /analytics/{link_id}/hourly-click-averages`
+- Protected
+
+Returns the average number of clicks grouped by hour of the day. The response includes all 24 hours, using `0` when there are no clicks for that hour.
+
+Response example:
+
+```json
+[
+  {
+    "hour": 0,
+    "average_clicks": 0
+  },
+  {
+    "hour": 13,
+    "average_clicks": 2.5
+  }
+]
+```
+
+#### List Weekday Click Averages
+
+- `GET /analytics/{link_id}/weekday-click-averages`
+- Protected
+
+Returns the average number of clicks grouped by day of the week. The response uses ISO weekday numbers: `1` is Monday and `7` is Sunday.
+
+Response example:
+
+```json
+[
+  {
+    "day_of_week": 1,
+    "average_clicks": 0
+  },
+  {
+    "day_of_week": 5,
+    "average_clicks": 3.5
+  }
+]
+```
+
+#### List Monthly Week Click Averages
+
+- `GET /analytics/{link_id}/monthly-week-click-averages`
+- Protected
+
+Returns the average number of clicks grouped by week of the month. Weeks are grouped by day range: `1` is days 1-7, `2` is days 8-14, `3` is days 15-21, `4` is days 22-28, and `5` is days 29-31.
+
+Response example:
+
+```json
+[
+  {
+    "week_of_month": 1,
+    "average_clicks": 0
+  },
+  {
+    "week_of_month": 4,
+    "average_clicks": 6
+  }
+]
+```
+
 ### Health
 
 #### Liveness
@@ -209,6 +277,7 @@ The API listens on `http://localhost:8080`.
 3. Create a link with `POST http://localhost:8080/link`.
 4. Open `GET http://localhost:8080/link/{code}` to redirect.
 5. Read analytics with `GET http://localhost:8080/analytics/{link_id}`.
+6. Read time-based analytics with `GET http://localhost:8080/analytics/{link_id}/hourly-click-averages`, `GET http://localhost:8080/analytics/{link_id}/weekday-click-averages`, or `GET http://localhost:8080/analytics/{link_id}/monthly-week-click-averages`.
 
 ## Database
 
@@ -221,6 +290,7 @@ Tables currently included:
 - `users`
 - `links`
 - `analytics`
+- `analytics_clicks`
 
 ## Known Gaps
 

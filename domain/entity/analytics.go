@@ -19,3 +19,8 @@ type WeekdayClickAverage struct {
 	DayOfWeek     int     `json:"day_of_week"`
 	AverageClicks float64 `json:"average_clicks"`
 }
+
+type MonthlyWeekClickAverage struct {
+	WeekOfMonth   int     `json:"week_of_month"`
+	AverageClicks float64 `json:"average_clicks"`
+}
